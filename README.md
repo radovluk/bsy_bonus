@@ -1,6 +1,6 @@
 # BSY bonus assignment task 5
 
-##The task
+## The task
 
 1. Your task is to write the bot code and the controller code. The bot will be the infected computer, and the controller is what you use to control the bots.
 
@@ -46,7 +46,7 @@ controller.send_command("w")
 controller.send_command("ls", path=path)
 
 #get id (if of current user)
-controller.send_command("ls", path=path)
+controller.send_command("id")
 
 #Copy a file from the bot to the controller
 controller.send_command("cp", file_name=file)
